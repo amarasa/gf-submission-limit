@@ -80,7 +80,7 @@ add_filter('gform_pre_render', function ($form) {
 
     // Get the stored submission limit from the settings
     $ip_restrictions_options = get_option('ip_restrictions_options');
-    $submission_limit = $ip_restrictions_options['submission_limit'] ?? 3;
+    $submission_limit = $ip_restrictions_options['submission_limit'] ?? 5;
 
     // Debugging: Log the submission count and limit
     error_log('Submission count: ' . $submission_count . ' | Submission limit: ' . $submission_limit);
