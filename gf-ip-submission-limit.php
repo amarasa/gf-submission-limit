@@ -2,7 +2,7 @@
 /*
 Plugin Name: Gravity Forms IP Submission Limit
 Description: Limits the number of form submissions from a single IP address within a 24-hour period.
-Version: 1.1
+Version: 1.1.1
 Author: Angelo Marasa
 */
 
