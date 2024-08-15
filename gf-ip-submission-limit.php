@@ -6,6 +6,28 @@ Version: 1.0
 Author: Angelo Marasa
 */
 
+
+/* -------------------------------------------------------------------------------------- */
+// Updater
+require 'puc/plugin-update-checker.php';
+
+use YahnisElsts\PluginUpdateChecker\v5\PucFactory;
+
+$myUpdateChecker = PucFactory::buildUpdateChecker(
+    'https://github.com/amarasa/gf-submission-limit',
+    __FILE__,
+    'gf-submission-limit'
+);
+
+//Set the branch that contains the stable release.
+//$myUpdateChecker->setBranch('stable-branch-name');
+
+//Optional: If you're using a private repository, specify the access token like this:
+// $myUpdateChecker->setAuthentication('your-token-here');
+
+/* -------------------------------------------------------------------------------------- */
+
+
 if (!defined('ABSPATH')) {
     exit; // Exit if accessed directly.
 }
@@ -63,14 +85,22 @@ add_filter('gform_pre_render', function ($form) {
     // Debugging: Log the submission count and limit
     error_log('Submission count: ' . $submission_count . ' | Submission limit: ' . $submission_limit);
 
+    // If the submission count is already at the limit, replace the form with a message
     if ($submission_count >= $submission_limit) {
-        // Replace the form with a message
-        echo '<p>You have reached the submission limit. Please try again later.</p>';
-
-        // Return a minimal form structure to avoid errors
-        return array();
+        // Check if we are on a form page or a confirmation page
+        if (!rgpost('gform_submit')) {
+            // If we're on the form page, display the limit reached message
+            echo '<p>You have reached the submission limit. Please try again later.</p>';
+            return array(); // Prevent the form from rendering
+        }
     }
 
     // Return the form unchanged if the limit is not reached
     return $form;
 });
+
+// Handle what happens after form submission (confirmation page logic)
+add_filter('gform_confirmation', function ($confirmation, $form, $entry) {
+    // The confirmation page logic stays unchanged
+    return $confirmation;
+}, 10, 3);

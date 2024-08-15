@@ -39,6 +39,7 @@ function display_ip_restrictions_settings()
                     <th><?php _e('IP Address', 'textdomain'); ?></th>
                     <th><?php _e('Submission Count', 'textdomain'); ?></th>
                     <th><?php _e('Last Submission Time', 'textdomain'); ?></th>
+                    <th><?php _e('Actions', 'textdomain'); ?></th>
                 </tr>
             </thead>
             <tbody>
@@ -48,17 +49,44 @@ function display_ip_restrictions_settings()
                             <td><?php echo esc_html($ip); ?></td>
                             <td><?php echo count($timestamps); ?></td>
                             <td><?php echo date('Y-m-d H:i:s', max($timestamps)); ?></td>
+                            <td>
+                                <a href="<?php echo esc_url(admin_url('admin-post.php?action=clear_ip&ip_address=' . urlencode($ip))); ?>"
+                                    onclick="return confirm('<?php _e('Are you sure you want to clear the submission count for this IP?', 'textdomain'); ?>');">
+                                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" width="16" height="16">
+                                        <path d="M135.2 17.7C140.6 6.8 151.7 0 163.8 0L284.2 0c12.1 0 23.2 6.8 28.6 17.7L320 32l96 0c17.7 0 32 14.3 32 32s-14.3 32-32 32L32 96C14.3 96 0 81.7 0 64S14.3 32 32 32l96 0 7.2-14.3zM32 128l384 0 0 320c0 35.3-28.7 64-64 64L96 512c-35.3 0-64-28.7-64-64l0-320zm96 64c-8.8 0-16 7.2-16 16l0 224c0 8.8 7.2 16 16 16s16-7.2 16-16l0-224c0-8.8-7.2-16-16-16zm96 0c-8.8 0-16 7.2-16 16l0 224c0 8.8 7.2 16 16 16s16-7.2 16-16l0-224c0-8.8-7.2-16-16-16zm96 0c-8.8 0-16 7.2-16 16l0 224c0 8.8 7.2 16 16 16s16-7.2 16-16l0-224c0-8.8-7.2-16-16-16z" />
+                                    </svg>
+                                </a>
+                            </td>
                         </tr>
                     <?php endforeach; ?>
                 <?php else : ?>
                     <tr>
-                        <td colspan="3"><?php _e('No IP addresses are blocked within the last 24 hours.', 'textdomain'); ?></td>
+                        <td colspan="4"><?php _e('No IP addresses are blocked within the last 24 hours.', 'textdomain'); ?></td>
                     </tr>
                 <?php endif; ?>
             </tbody>
         </table>
     </div>
 <?php
+}
+
+add_action('admin_post_clear_ip', 'clear_ip_submission_count');
+function clear_ip_submission_count()
+{
+    // Verify the request is valid and user has the right capability
+    if (!current_user_can('manage_options') || !isset($_GET['ip_address'])) {
+        wp_die(__('You do not have permission to access this page.', 'textdomain'));
+    }
+
+    // Sanitize the IP address
+    $ip_address = sanitize_text_field($_GET['ip_address']);
+
+    // Delete the option associated with the IP address
+    delete_option('gf_ip_submissions_' . $ip_address);
+
+    // Redirect back to the settings page with a success message
+    wp_redirect(add_query_arg('message', 'cleared', admin_url('admin.php?page=ip_restrictions')));
+    exit;
 }
 
 add_action('admin_init', 'register_ip_restrictions_settings');
